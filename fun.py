@@ -29,16 +29,24 @@ ORACLE_MODEL = "qwen3.5:2b"
 _OLLAMA_GENERATE_URL = "http://localhost:11434/api/generate"
 _OLLAMA_PULL_URL = "http://localhost:11434/api/pull"
 
+# All the color names you can pass to paint() and write().
 _CODES = {
     "red": "\033[91m",
-    "green": "\033[92m",
+    "orange": "\033[38;5;208m",
     "yellow": "\033[93m",
+    "green": "\033[92m",
+    "cyan": "\033[96m",
     "blue": "\033[94m",
     "purple": "\033[95m",
-    "cyan": "\033[96m",
+    "pink": "\033[38;5;213m",
+    "brown": "\033[38;5;130m",
     "white": "\033[97m",
 }
 _RESET = "\033[0m"
+
+# The list of color names above, so other files can check
+# "is this a color I know about?" without poking at _CODES directly.
+COLORS = list(_CODES)
 
 _SAVE_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "finished_stories.txt"

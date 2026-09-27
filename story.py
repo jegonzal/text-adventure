@@ -34,18 +34,40 @@ clear()
 banner(f"{animal} Malfunction")
 say(f"{animal} malfunction")
 
+# Paint each fill-in-the-blank word its own color, so it stands out from
+# the rest of the story. If the color the player typed is one we know
+# about (like "pink"), we use that color for the word itself!
+name_c = paint(name, "pink")
+animal_c = paint(animal, "orange")
+food_c = paint(food, "green")
+silly_word_c = paint(silly_word, "purple")
+place_c = paint(place, "cyan")
+verb_c = paint(verb, "yellow")
+color_c = paint(color, color if color in COLORS else "white")
 
 story = f"""
+once upon a time there was a girl named {name_c}
+she was attacked by an {animal_c}
+Once upon a time. In a place called {place_c}.
+There was a {name_c} who {verb_c} all the way to {silly_word_c} {place_c}.
+One day {name_c} got attacked by a {animal_c} and they turned {color_c}.
+
+A few days later {name_c} turned into a {food_c} and the {animal_c}
+yelled {silly_word_c} and ate {name_c}.
+"""
+
+# say() reads the story out loud, so it needs the plain words -- not the
+# color codes we just added for the on-screen version.
+story_plain = f"""
 once upon a time there was a girl named {name}
 she was attacked by an {animal}
-Once upon a time. In a place called {place}. 
+Once upon a time. In a place called {place}.
 There was a {name} who {verb} all the way to {silly_word} {place}.
 One day {name} got attacked by a {animal} and they turned {color}.
 
-A few days later {name} turned into a {food} and the {animal} 
+A few days later {name} turned into a {food} and the {animal}
 yelled {silly_word} and ate {name}.
 """
 
-
-write(story, "green")
-say(story)
+write(story, "white")
+say(story_plain)
