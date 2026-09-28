@@ -56,6 +56,6 @@ A few days later {name_c} turned into a {food_c} and the {animal_c}
 yelled {silly_word_c} and ate {name_c}.
 """
 
-# say(..., write=True) types the story out on screen while reading it
-# out loud at the same time, instead of doing one then the other.
-say(story, write=True, color="white")
+# say() types the story out on screen while reading it out loud, all
+# at the same time.
+say(story)

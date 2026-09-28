@@ -124,19 +124,22 @@ _type_out = write
 _SPEECH_CMD = shutil.which("say")  # macOS's built-in text-to-speech
 
 
-def say(text, voice=None, write=False, color="white", speed=None):
+def say(text, voice=None, write=True, color="white", speed=None):
     """Have the computer read text out loud.
 
-    Works with plain text or text you've colored with paint() -- either
-    way, only the words get spoken.
+    By default this also types the text out on screen at the same time
+    it's being spoken, so players can follow along even without sound.
+    If the text was colored with paint(), those colors show up in the
+    typed version too -- only the spoken version drops the colors,
+    since there's no such thing as a pink voice.
 
     Args:
-        text: The text to speak.
+        text: The text to speak (and, by default, to type out).
         voice: An optional voice to use instead of the default. On a
             Mac, try running `say -v ?` in a terminal to see the list.
-        write: If True, also types the text out on screen (like write())
-            at the same time it's being spoken, instead of staying
-            silent on screen.
+        write: If True (the default), types the text out on screen at
+            the same time it's being spoken. Set this to False to speak
+            silently, with nothing shown on screen.
         color: What color to type the text in, if write=True.
         speed: How slowly to type, if write=True. See write() for what
             this means.
