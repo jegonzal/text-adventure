@@ -48,9 +48,25 @@ _RESET = "\033[0m"
 # "is this a color I know about?" without poking at _CODES directly.
 COLORS = list(_CODES)
 
+# Matches any color code that paint()/write() can add, so we can strip
+# them back out again (say() needs plain text, not color codes).
+_COLOR_CODE_RE = re.compile(r"\033\[[0-9;]*m")
+
 _SAVE_FILE = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "finished_stories.txt"
 )
+
+
+def strip_color(text):
+    """Remove any color codes from text, like the ones paint() adds.
+
+    Args:
+        text: Text that may have color codes in it.
+
+    Returns:
+        The same text with any color codes taken back out.
+    """
+    return _COLOR_CODE_RE.sub("", text)
 
 
 def paint(text, color="white"):
@@ -101,7 +117,8 @@ def say(text, voice=None):
     """Have the computer read text out loud.
 
     Args:
-        text: The text to speak.
+        text: The text to speak. If it has color codes in it (like text
+            that went through paint()), those are stripped out first.
         voice: An optional voice name to use instead of the default
             (macOS only -- run `say -v ?` in a terminal to see the list).
 
@@ -109,7 +126,7 @@ def say(text, voice=None):
         This only works on macOS, since it uses the built-in `say`
         command. On other computers it just prints a message instead.
     """
-    text = text.strip()
+    text = strip_color(text).strip()
     if not _SPEECH_CMD:
         write("(no text-to-speech found on this computer)", "red", speed=0)
         return
@@ -132,11 +149,14 @@ def dice(sides=6):
     return random.randint(1, sides)
 
 
-def _oracle_generate(prompt):
+def _oracle_generate(prompt, temperature=0):
     """Send one prompt to Ollama and return the model's raw reply text.
 
     Args:
         prompt: The full text prompt to send to ORACLE_MODEL.
+        temperature: How random/creative the reply should be. 0 always
+            gives the same, most-likely answer; higher values (up to 1)
+            make the model take more chances with its wording.
 
     Returns:
         The model's reply, as a plain string.
@@ -147,9 +167,9 @@ def _oracle_generate(prompt):
             "prompt": prompt,
             "stream": False,
             # Reasoning models like this one "think" before answering by
-            # default, which is slow and pointless for a one-word answer.
+            # default, which is slow and pointless for these prompts.
             "think": False,
-            "options": {"temperature": 0},
+            "options": {"temperature": temperature},
         }
     ).encode("utf-8")
     request = urllib.request.Request(
@@ -197,6 +217,40 @@ def _oracle_install():
     print()
 
 
+def _oracle_call(prompt, temperature=0):
+    """Send a prompt to the oracle model, installing it first if needed.
+
+    This is the part oracle() and writer() share: talk to Ollama, and if
+    the model isn't downloaded yet, download it and try again.
+
+    Args:
+        prompt: The full text prompt to send to ORACLE_MODEL.
+        temperature: How random/creative the reply should be. See
+            _oracle_generate() for details.
+
+    Returns:
+        The model's reply, as a plain string.
+
+    Raises:
+        RuntimeError: If Ollama isn't running or the model can't be
+            reached for some other reason.
+    """
+    try:
+        return _oracle_generate(prompt, temperature)
+    except urllib.error.HTTPError as error:
+        if error.code != 404:
+            raise RuntimeError(
+                f"The oracle had a problem ({error.code}). Is "
+                f"{ORACLE_MODEL!r} a real model name?"
+            )
+        _oracle_install()
+        return _oracle_generate(prompt, temperature)
+    except urllib.error.URLError:
+        raise RuntimeError(
+            "Couldn't reach the oracle. Is the Ollama app running?"
+        )
+
+
 def oracle(question):
     """Ask a small local AI to answer a yes-or-no question.
 
@@ -220,25 +274,45 @@ def oracle(question):
         f"Question: {question}\n"
         "Answer:"
     )
-    try:
-        reply = _oracle_generate(prompt)
-    except urllib.error.HTTPError as error:
-        if error.code != 404:
-            raise RuntimeError(
-                f"The oracle had a problem ({error.code}). Is "
-                f"{ORACLE_MODEL!r} a real model name?"
-            )
-        _oracle_install()
-        reply = _oracle_generate(prompt)
-    except urllib.error.URLError:
-        raise RuntimeError(
-            "Couldn't reach the oracle. Is the Ollama app running?"
-        )
+    reply = _oracle_call(prompt)
 
     match = re.search(r"\btrue\b|\bfalse\b", reply, re.IGNORECASE)
     if not match:
         raise RuntimeError(f"The oracle gave a weird answer: {reply!r}")
     return match.group().lower() == "true"
+
+
+def writer(prompt, temperature=0.8):
+    """Ask a small local AI to write something creative for you.
+
+    Uses the same model and setup as oracle(), but turns up the
+    temperature so the writing is more surprising and varied instead of
+    always picking the safest next word.
+
+    Args:
+        prompt: What you want written, like "a poem about a dragon who
+            is afraid of toast" or "a short scene where two robots meet
+            for the first time".
+        temperature: How wild the writing should be, from 0 (plain and
+            predictable) to 1 (very random). Defaults to 0.8, which
+            leaves plenty of room for silliness.
+
+    Returns:
+        The written text, as a plain string.
+
+    Raises:
+        RuntimeError: If Ollama isn't running or can't be reached.
+    """
+    full_prompt = (
+        "You are a creative writer for a text adventure game. Write in "
+        "English, for a middle-school aged audience, and be funny "
+        "whenever you can. Keep it appropriate for kids. Only output "
+        "the writing itself -- no titles, notes, or explanations before "
+        "or after it.\n\n"
+        f"Writing prompt: {prompt}\n"
+        "Writing:"
+    )
+    return _oracle_call(full_prompt, temperature=temperature).strip()
 
 
 def ask(question, color="cyan", allow_empty=False):

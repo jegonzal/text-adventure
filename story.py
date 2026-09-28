@@ -56,18 +56,5 @@ A few days later {name_c} turned into a {food_c} and the {animal_c}
 yelled {silly_word_c} and ate {name_c}.
 """
 
-# say() reads the story out loud, so it needs the plain words -- not the
-# color codes we just added for the on-screen version.
-story_plain = f"""
-once upon a time there was a girl named {name}
-she was attacked by an {animal}
-Once upon a time. In a place called {place}.
-There was a {name} who {verb} all the way to {silly_word} {place}.
-One day {name} got attacked by a {animal} and they turned {color}.
-
-A few days later {name} turned into a {food} and the {animal}
-yelled {silly_word} and ate {name}.
-"""
-
 write(story, "white")
-say(story_plain)
+say(story)  # say() strips out the color codes on its own
