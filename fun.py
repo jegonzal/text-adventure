@@ -110,10 +110,14 @@ def write(text, color="white", speed=None):
     print()
 
 
+# An alias for write(), so say() can still use it even though say() has
+# its own parameter named "write".
+_type_out = write
+
 _SPEECH_CMD = shutil.which("say")  # macOS's built-in text-to-speech
 
 
-def say(text, voice=None):
+def say(text, voice=None, write=False, color="white", speed=None):
     """Have the computer read text out loud.
 
     Args:
@@ -121,20 +125,39 @@ def say(text, voice=None):
             that went through paint()), those are stripped out first.
         voice: An optional voice name to use instead of the default
             (macOS only -- run `say -v ?` in a terminal to see the list).
+        write: If True, also prints the text on screen one letter at a
+            time (like the write() function) *while* it's being spoken,
+            instead of speaking it silently. The speech runs in the
+            background so the typing and the talking happen together.
+        color: What color to print the text in, if write=True.
+        speed: Seconds to pause between letters, if write=True. Defaults
+            to SPEED.
 
     Note:
-        This only works on macOS, since it uses the built-in `say`
-        command. On other computers it just prints a message instead.
+        Speech only works on macOS, since it uses the built-in `say`
+        command. On other computers it just prints a message instead
+        (and still types out the text if write=True).
     """
-    text = strip_color(text).strip()
+    spoken = strip_color(text).strip()
     if not _SPEECH_CMD:
-        write("(no text-to-speech found on this computer)", "red", speed=0)
+        if write:
+            _type_out(text, color, speed)
+        write_notice = "(no text-to-speech found on this computer)"
+        _type_out(write_notice, "red", speed=0)
         return
     cmd = [_SPEECH_CMD]
     if voice:
         cmd += ["-v", voice]
-    cmd.append(text)
-    subprocess.run(cmd, check=False)
+    cmd.append(spoken)
+    if write:
+        # Start the speech in the background (instead of waiting for it
+        # to finish) so we can type the text out on screen at the same
+        # time, then wait for the speech to catch up before moving on.
+        speech = subprocess.Popen(cmd)
+        _type_out(text, color, speed)
+        speech.wait()
+    else:
+        subprocess.run(cmd, check=False)
 
 
 def dice(sides=6):
