@@ -290,18 +290,17 @@ def oracle(question):
     whether the player's answer makes sense.
 
     The first time you call this, your computer may take a few seconds
-    to get the AI ready.
+    to get the AI ready. If the oracle can't answer for some reason, it
+    announces that it isn't feeling well and just flips a coin instead,
+    so your story can keep going either way.
 
     Args:
         question: A yes-or-no question, written as a plain sentence,
             like "Is a pillow a good weapon against a dragon?".
 
     Returns:
-        True or False, depending on what the AI decided.
-
-    Raises:
-        RuntimeError: If the AI couldn't be reached, or couldn't give a
-            clear yes-or-no answer. See the README for setup help.
+        True or False, depending on what the AI decided (or, once in a
+        while, what the coin flip decided).
     """
     prompt = (
         "You are a yes-or-no oracle. Answer with exactly one word: "
@@ -310,12 +309,15 @@ def oracle(question):
         f"Question: {question}\n"
         "Answer:"
     )
-    reply = _oracle_call(prompt)
-
-    match = re.search(r"\btrue\b|\bfalse\b", reply, re.IGNORECASE)
-    if not match:
-        raise RuntimeError(f"The oracle gave a weird answer: {reply!r}")
-    return match.group().lower() == "true"
+    try:
+        reply = _oracle_call(prompt)
+        match = re.search(r"\btrue\b|\bfalse\b", reply, re.IGNORECASE)
+        if not match:
+            raise RuntimeError(f"The oracle gave a weird answer: {reply!r}")
+        return match.group().lower() == "true"
+    except RuntimeError:
+        write("The oracle is not feeling well today...", "yellow")
+        return random.choice([True, False])
 
 
 def imagine(prompt, temperature=0.8):
