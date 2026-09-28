@@ -243,7 +243,7 @@ def _oracle_install():
 def _oracle_call(prompt, temperature=0):
     """Send a prompt to the oracle model, installing it first if needed.
 
-    This is the part oracle() and writer() share: talk to Ollama, and if
+    This is the part oracle() and imagine() share: talk to Ollama, and if
     the model isn't downloaded yet, download it and try again.
 
     Args:
@@ -305,7 +305,7 @@ def oracle(question):
     return match.group().lower() == "true"
 
 
-def writer(prompt, temperature=0.8):
+def imagine(prompt, temperature=0.8):
     """Ask a small local AI to write something creative for you.
 
     Uses the same model and setup as oracle(), but turns up the
