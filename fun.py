@@ -58,28 +58,35 @@ _SAVE_FILE = os.path.join(
 
 
 def strip_color(text):
-    """Remove any color codes from text, like the ones paint() adds.
+    """Get the plain version of some colorful text, with no color in it.
+
+    Handy when you have text made with paint() (or a story built out of
+    it) and you need a plain version instead -- say() does this for you
+    automatically, so you'll rarely need to call this yourself.
 
     Args:
-        text: Text that may have color codes in it.
+        text: Some text, possibly colored with paint().
 
     Returns:
-        The same text with any color codes taken back out.
+        The same text, but with no color in it.
     """
     return _COLOR_CODE_RE.sub("", text)
 
 
 def paint(text, color="white"):
-    """Wrap some text in a color.
+    """Get a version of some text that shows up in a chosen color.
+
+    Use this to color a single word or sentence before printing it, or
+    to color part of a bigger story before passing the whole thing to
+    write() or say().
 
     Args:
         text: The text to color.
-        color: One of the names in _CODES, like "red" or "green".
+        color: A color name, like "red", "pink", or "cyan". See COLORS
+            for the full list.
 
     Returns:
-        The same text, surrounded by the color codes that make a
-        terminal print it in that color (or the plain text, unchanged,
-        if USE_COLOR is False).
+        The colored text, ready to print() or pass to write() or say().
     """
     if not USE_COLOR:
         return text
@@ -92,8 +99,8 @@ def write(text, color="white", speed=None):
     Args:
         text: The text to print.
         color: What color to print it in.
-        speed: Seconds to pause between letters. 0 means print instantly.
-            Defaults to SPEED.
+        speed: How slowly to type, in seconds between letters. 0 prints
+            it instantly instead. Defaults to SPEED.
     """
     text = text.strip()
     if speed is None:
@@ -120,23 +127,24 @@ _SPEECH_CMD = shutil.which("say")  # macOS's built-in text-to-speech
 def say(text, voice=None, write=False, color="white", speed=None):
     """Have the computer read text out loud.
 
+    Works with plain text or text you've colored with paint() -- either
+    way, only the words get spoken.
+
     Args:
-        text: The text to speak. If it has color codes in it (like text
-            that went through paint()), those are stripped out first.
-        voice: An optional voice name to use instead of the default
-            (macOS only -- run `say -v ?` in a terminal to see the list).
-        write: If True, also prints the text on screen one letter at a
-            time (like the write() function) *while* it's being spoken,
-            instead of speaking it silently. The speech runs in the
-            background so the typing and the talking happen together.
-        color: What color to print the text in, if write=True.
-        speed: Seconds to pause between letters, if write=True. Defaults
-            to SPEED.
+        text: The text to speak.
+        voice: An optional voice to use instead of the default. On a
+            Mac, try running `say -v ?` in a terminal to see the list.
+        write: If True, also types the text out on screen (like write())
+            at the same time it's being spoken, instead of staying
+            silent on screen.
+        color: What color to type the text in, if write=True.
+        speed: How slowly to type, if write=True. See write() for what
+            this means.
 
     Note:
-        Speech only works on macOS, since it uses the built-in `say`
-        command. On other computers it just prints a message instead
-        (and still types out the text if write=True).
+        Speech only works on some computers. If yours can't talk, this
+        just shows a short message instead (and still types out the
+        text if write=True).
     """
     spoken = strip_color(text).strip()
     if not _SPEECH_CMD:
@@ -275,20 +283,25 @@ def _oracle_call(prompt, temperature=0):
 
 
 def oracle(question):
-    """Ask a small local AI to answer a yes-or-no question.
+    """Ask a small AI a yes-or-no question and get its answer.
 
-    Needs the Ollama app running (ollama.com); the model gets downloaded
-    automatically the first time you use this if it isn't already.
+    Use this whenever your story needs to decide something and you want
+    an AI to be the judge -- like whether an item counts as a weapon, or
+    whether the player's answer makes sense.
+
+    The first time you call this, your computer may take a few seconds
+    to get the AI ready.
 
     Args:
-        question: The yes-or-no question to ask, as a plain sentence.
+        question: A yes-or-no question, written as a plain sentence,
+            like "Is a pillow a good weapon against a dragon?".
 
     Returns:
         True or False, depending on what the AI decided.
 
     Raises:
-        RuntimeError: If Ollama isn't running, or the model gave back
-            something that wasn't a clear yes or no.
+        RuntimeError: If the AI couldn't be reached, or couldn't give a
+            clear yes-or-no answer. See the README for setup help.
     """
     prompt = (
         "You are a yes-or-no oracle. Answer with exactly one word: "
@@ -306,25 +319,28 @@ def oracle(question):
 
 
 def imagine(prompt, temperature=0.8):
-    """Ask a small local AI to write something creative for you.
+    """Ask a small AI to write something creative for your story.
 
-    Uses the same model and setup as oracle(), but turns up the
-    temperature so the writing is more surprising and varied instead of
-    always picking the safest next word.
+    Use this whenever you want part of your story written for you
+    instead of writing it yourself -- a description, a scene, a poem, a
+    joke, whatever you ask for. It writes in English for a
+    middle-school aged audience, and tries to be funny.
 
     Args:
         prompt: What you want written, like "a poem about a dragon who
             is afraid of toast" or "a short scene where two robots meet
             for the first time".
-        temperature: How wild the writing should be, from 0 (plain and
-            predictable) to 1 (very random). Defaults to 0.8, which
-            leaves plenty of room for silliness.
+        temperature: How wild and unexpected the writing should be, from
+            0 (plainer, safer) to 1 (more surprising). The default of
+            0.8 is usually a good, silly middle ground.
 
     Returns:
-        The written text, as a plain string.
+        The written text, as a plain string, ready to print, speak, or
+        drop into the rest of your story.
 
     Raises:
-        RuntimeError: If Ollama isn't running or can't be reached.
+        RuntimeError: If the AI couldn't be reached. See the README for
+            setup help.
     """
     full_prompt = (
         "You are a creative writer for a text adventure game. Write in "
