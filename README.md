@@ -14,6 +14,11 @@ Python and your imagination.
 - **[story.py](story.py)** -- a fill-in-the-blanks story. It asks you for some
   words (a color, a name, an animal...) and drops them into a story.
 - **[game.py](game.py)** -- a choose-your-own-weapon dragon adventure.
+- **[game1.py](game1.py)** -- The Troll Bridge: the simplest possible AI
+  adventure. Give a troll a present, and the AI decides what happens.
+- **[game2.py](game2.py)** -- The Wizard's Lost Hat: explore a castle room by
+  room, type any idea you want, and let the oracle, the dice, and the AI
+  storyteller decide how it goes.
 - **[play.py](play.py)** -- a tiny scratchpad for asking the oracle any
   yes-or-no question.
 
