@@ -499,7 +499,7 @@ def imagine(prompt, temperature=0.7):
     return _oracle_call(prompt, system, temperature).strip()
 
 
-def ask(question, color="cyan", allow_empty=False):
+def ask(question, color="cyan", allow_empty=False, type="text"):
     """Ask a question and wait for the player to type an answer.
 
     Args:
@@ -507,15 +507,31 @@ def ask(question, color="cyan", allow_empty=False):
         color: What color to show the prompt in.
         allow_empty: If False (the default), keeps asking until the
             player types something. If True, an empty answer is okay.
+        type: "text" (the default) to get back whatever they typed, or
+            "number" to keep asking until they type a number, so you
+            can do math with it or compare it with < and >.
 
     Returns:
-        Whatever the player typed, with extra spaces trimmed off.
+        Whatever the player typed, with extra spaces trimmed off. With
+        type="number", you get a number instead (like 7 or 2.5).
     """
     while True:
         answer = input(paint(question, color)).strip()
-        if answer or allow_empty:
+        if not answer:
+            if allow_empty:
+                return answer
+            write("You have to type something!", "red", speed=0)
+        elif type == "number":
+            try:
+                return int(answer)
+            except ValueError:
+                pass
+            try:
+                return float(answer)
+            except ValueError:
+                write("That's not a number! Try again.", "red", speed=0)
+        else:
             return answer
-        write("You have to type something!", "red", speed=0)
 
 
 def banner(title, color="yellow"):

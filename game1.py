@@ -1,30 +1,74 @@
 # Press the green Run button, then answer the questions down in the Shell.
 #
-# The Troll Bridge: the simplest adventure you can make with the oracle.
-# A troll blocks the bridge, and you have to give it a present. The
-# oracle() decides if the troll likes it, and imagine() makes up what
-# happens next -- so the story is different every time you play!
+# The Troll Bridge: a grumpy troll won't let you cross his bridge unless
+# you give him a present. But this troll is weird -- he only likes
+# STINKY, GROSS presents! The oracle() decides if your present is gross
+# enough.
 
 from fun import *
 
 banner("The Troll Bridge")
 
+say("What is your name, brave hero?")
+name = ask("Name: ")
+
+say(f"{name} comes to a rickety old bridge over a bubbling river.")
+say("A grumpy troll jumps out from underneath it!", color="green")
+say("'Nobody crosses MY bridge without giving me a present!' he growls.", color="green")
+say("'And I only like presents that are STINKY and GROSS!'", color="green")
+
+tries = 0
+
 passed = False
-
-
-
 while not passed:
-    say("You come to a rickety old bridge over a bubbling river.")
-    say("A grumpy troll jumps out from underneath it!", color="green")
-    say("'Nobody crosses MY bridge without giving me a present!' it growls.", color="green")
     present = ask("What present do you give the troll? ")
-    if oracle(f"Would a grumpy troll who lives under a bridge like getting {present} as a present?"):    
+    tries = tries + 1
+    say(f"{name} hands the troll {present}.")
+    drumroll()
+
+    if oracle(f"Would most kids say 'ew, gross!' about {present}?"):
+        say(f"The troll sniffs {present}...")
+        say("'Ooooh! It's DISGUSTING! I LOVE it!'", color="green")
         passed = True
     else:
-        story = imagine(f"In 2 or 3 sentences, describe a grumpy troll who HATES the {present} it was just given, and chases the hero away from its bridge.")
-        say(story)
-        banner("The troll chased you away!", "red")
-    
-story = imagine(f"In 2 or 3 sentences, describe a grumpy troll who LOVES the {present} it was just given, and happily lets the hero cross its bridge.")
-say(story)
+        say(f"The troll sniffs the {present}...")
+        say(f"'BLEH! That {present} smells NICE! Yuck!'", color="green")
+        say(f"The troll throws the {present} into the river. SPLASH!", color="blue")
+        say(f"'Try again! And make it GROSSER!'", color="green")
+
+say("The troll gives you a big slimy hug and lets you cross the bridge.")
+say(f"It took {name} {tries} tries to make the troll happy.")
 banner("You crossed the bridge!", "green")
+
+
+say(f"{name} comes to a large brick wall.")
+say("A proud wizard stands before the wall, arms crossed.", color="blue")
+say("'Nobody crosses MY wall without guessing my favorite number' he proclaims.", color="blue")
+say("'It is a number between 1 and 100!'", color="blue")
+say("'If you guess my number correctly, you may pass!'", color="blue")
+say("'If you guess wrong I will say whether my number is higher or lower!'", color="blue")
+say("'But after 7 questions, I will pick another number!'", color="blue")
+
+
+passed = False
+total_tries = 0
+
+while not passed:
+    magic_number = dice(100)
+    for tries in range(7):
+        total_tries += 1
+        guess = ask("What is my number? ", type="number")
+        drumroll()
+        if guess == magic_number:
+            say(f"The wizard claps his hands and says, 'Correct! You may pass.'", color="blue")
+            passed = True
+            break
+        elif guess < magic_number:
+            say(f"'My number is HIGHER than {guess}!'", color="blue")
+        else:
+            say(f"'My number is LOWER than {guess}!'", color="blue")
+    if not passed:
+        say(f"The wizard sighs and picks a new number.", color="blue")
+
+say("The wizard lets you pass through the wall.")
+say(f"It took {name} {total_tries} tries to guess the wizard's number.")
